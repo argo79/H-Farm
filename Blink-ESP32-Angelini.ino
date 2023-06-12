@@ -1,7 +1,7 @@
 /*
   ESP32-IoT Angelini Test
   Trasmissione bluetooth del valore del sensore PIR
-  Ricezione comando accensione/speginmento led
+  Ricezione comando accensione/spegnimento led
   Ricezione comando impostazione soglia PIR
   Ricezione comando modalità: acceso, spento, rileva movimento
 */
