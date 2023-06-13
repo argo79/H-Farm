@@ -7,6 +7,7 @@
 */
 
 #define builtInLed 2
+#define pinPir 14
 
 #include <WiFi.h>
 #include <PubSubClient.h>
@@ -29,7 +30,7 @@ const char* mqtt_server = "192.168.0.69";
 //////////////////////////////////
 // Configurazione Mosquitto
 
-#define nomeClient        "IoTAngelini"
+#define nomeClient        "IoTAngelini2"
 
 #define Messaggio_topic   "IoT/Angelini/messaggio"
 #define statoLed_topic    "IoT/Angelini/statoLed"
@@ -48,7 +49,15 @@ BluetoothSerial SerialBT;
 
 bool statoLed=0;
 bool statoLedOld;
-int sogliaPir=512;
+int sogliaPir=500;
+// Variabili comunicazione
+String dataPC;
+String dataBT;
+char serPC;
+char serBT;
+String dataMQTT;
+int sensorePir=518;
+int statoPir;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -69,7 +78,7 @@ void setup() {
     SerialBT.print(".");
   }
 
-ArduinoOTA.setHostname("IoTAngelini-OTA");
+ArduinoOTA.setHostname("IoTAngelini2-OTA");
 ArduinoOTA
     .onStart([]() {
       String type;
@@ -107,6 +116,7 @@ ArduinoOTA
   client.setCallback(callback);
 
   pinMode(builtInLed, OUTPUT);
+  pinMode(pinPir, INPUT);
 }
 
 
@@ -114,7 +124,20 @@ ArduinoOTA
 void loop() {
 
   ArduinoOTA.handle();
-  
+  statoPir=digitalRead(pinPir);
+  //SerialBT.println(statoPir);
+
+  if (statoPir>0) {
+    statoLed=1;
+    digitalWrite(builtInLed, statoLed);
+    SerialBT.print("Il sensore si è attivato! ");
+    SerialBT.println(statoPir);
+    delay(sogliaPir);
+
+  }
+  else statoLed=0;
+
+
   if (!client.connected()) {
     reconnect();
   }  
@@ -126,6 +149,7 @@ void loop() {
 //  delay(1000);                      // wait for a second
 
 
+  BTSerialRicevi();                     // RICEVO MESSAGGI BLUETOOTH
 
 
   client.loop();
@@ -179,12 +203,87 @@ void reconnect() {                            // CONNESSIONE BROKER MQTT
 }
 
 
-
-
-
 void sendBTWifi() {
   SerialBT.println("");
   SerialBT.println("WiFi connected.");
   SerialBT.println("IP address: ");
   SerialBT.println(WiFi.localIP());
+}
+
+
+void BTSerialRicevi() {                    // GESTIONE CONTROLLO BLUETOOTH
+  if (SerialBT.available()) {
+    
+    while (SerialBT.available()) {
+      serBT=SerialBT.read();
+      dataBT+=serBT;
+      yield();        
+    }          
+    //Serial.println(dataBT); 
+    dataBT.trim();
+    
+    if (dataBT.length()>0) {
+          
+      if (dataBT=="reset") {      
+        //restartESP32();  
+        }             
+      
+      else if (dataBT.startsWith("accendi")) {                           
+        statoLed=1;
+        SerialBT.print("Led acceso! ");    
+        SerialBT.println(statoLed);        
+      } 
+
+      else if (dataBT.startsWith("spegni")) {                           
+        statoLed=0;
+        SerialBT.print("Led spento! ");    
+        SerialBT.println(statoLed);        
+      } 
+      
+      else if (dataBT.startsWith("sogPir")) {                    
+        String sogliaPirS=dataBT.substring(6);
+        sogliaPir=sogliaPirS.toInt();     
+        SerialBT.print("Soglia Pir: ");    
+        SerialBT.println(sogliaPir);
+      }
+      
+      else if (dataBT.startsWith("help")) {                       // HELP -> Comando        
+        SerialBT.println("Comandi:"); 
+        SerialBT.println("");
+        SerialBT.println("reset          -> Resetta Esp32");    
+        SerialBT.println("accendi        -> Accende il led!");        
+        SerialBT.println("spegni         -> Spegne il led");          
+        SerialBT.println("sogPir(50-4000)-> Soglia sensore PIR");  
+        SerialBT.println("info           -> Mostra valori attuali");              
+        SerialBT.println("help           -> Questo comando.");
+        SerialBT.println("");
+        //delay(50);       
+      }
+
+      else if (dataBT.startsWith("info")) {                       // HELP -> Comando                
+        printValues();
+      }
+
+      else {
+        SerialBT.println("Valore sbagliato. Nessun comando riconosciuto.");          
+      }
+    }
+  }
+    dataBT="";
+    //delay(1);
+}
+
+
+void printValues() {                        // LEGGE TUTTI I VALORI DEI SENSORI
+    
+  SerialBT.println("Valori attuali:");
+  SerialBT.println("");  
+  SerialBT.print("Soglia sensore PIR: ");
+  SerialBT.println(sogliaPir);  
+  SerialBT.print("Stato led: ");
+  SerialBT.println(statoLed);
+  SerialBT.print("Sensore PIR: ");
+  SerialBT.println(sensorePir);
+  SerialBT.println("");    
+
 }
