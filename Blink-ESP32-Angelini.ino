@@ -6,7 +6,7 @@
   Ricezione comando modalità: acceso, spento, rileva movimento
 */
 
-#define builtInLed 2
+#define builtInLed 13
 #define pinPir 14
 
 #include <WiFi.h>
@@ -21,8 +21,8 @@
 //////////////////////////////////
 //           WIFI               //
 //////////////////////////////////
-const char* ssid = "**********";
-const char* password = "***********";
+const char* ssid = "blekgek-2";
+const char* password = "radicofani27";
 const char* mqtt_server = "93.40.0.250";
 
 //////////////////////////////////
@@ -35,7 +35,7 @@ const char* mqtt_server = "93.40.0.250";
 #define Messaggio_topic   "IoT/Angelini/messaggio"
 #define statoLed_topic    "IoT/Angelini/statoLed"
 #define sogliaPir_topic   "IoT/Angelini/sogliaPir"
-
+#define allarme_topic     "IoT/Angelini/allarme"
 
 // Creazione oggetti
 
@@ -58,6 +58,10 @@ char serBT;
 String dataMQTT;
 int sensorePir=518;
 int statoPir;
+int mode=0;
+int allarme;
+char valore[10];
+
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -105,7 +109,7 @@ ArduinoOTA
       else if (error == OTA_END_ERROR) Serial.println("End Failed");
     });
 
-  ArduinoOTA.begin();
+  //ArduinoOTA.begin();
 
   
 // Print local IP address and start web server
@@ -117,36 +121,57 @@ ArduinoOTA
 
   pinMode(builtInLed, OUTPUT);
   pinMode(pinPir, INPUT);
+  digitalWrite(builtInLed, 0);  // turn the LED on (HIGH is the voltage level)
 }
 
 
 // the loop function runs over and over again forever
 void loop() {
 
-  ArduinoOTA.handle();
-  statoPir=digitalRead(pinPir);
+  ArduinoOTA.handle();  
+
+  switch (mode) {
+    case 0:
+      statoLed=0;
+      digitalWrite(builtInLed, statoLed);  // turn the LED on (HIGH is the voltage level)
+      break;
+
+    case 1:
+      statoLed=1;
+      digitalWrite(builtInLed, statoLed);  // turn the LED on (HIGH is the voltage level)
+      break;
+
+    case 2:
+      digitalWrite(builtInLed, 0);
+      statoPir=digitalRead(pinPir);
+      if (statoPir>0) {
+        digitalWrite(builtInLed, 1);
+        SerialBT.print("Il sensore si è attivato! ");
+        SerialBT.println(statoPir);
+        delay(sogliaPir);
+        digitalWrite(builtInLed, 0);
+
+      }
+      else statoLed=0;
+      break;
+    
+    default:
+      //digitalWrite(builtInLed, 0);
+      break;
+    }
+  /* 
+
+
+  
   //SerialBT.println(statoPir);
 
-  if (statoPir>0) {
-    statoLed=1;
-    digitalWrite(builtInLed, statoLed);
-    SerialBT.print("Il sensore si è attivato! ");
-    SerialBT.println(statoPir);
-    delay(sogliaPir);
+  
 
-  }
-  else statoLed=0;
-
+  */
 
   if (!client.connected()) {
     reconnect();
   }  
-
-
-  digitalWrite(builtInLed, statoLed);  // turn the LED on (HIGH is the voltage level)
-//  delay(1000);                      // wait for a second
-//  digitalWrite(builtInLed, !statoLed);   // turn the LED off by making the voltage LOW
-//  delay(1000);                      // wait for a second
 
 
   BTSerialRicevi();                     // RICEVO MESSAGGI BLUETOOTH
@@ -169,14 +194,33 @@ void callback(char* topic, byte* payload, unsigned int length) {        // Ricez
   if (topicS=="IoT/Angelini/statoLed") {
     //SerialBT.println(response);
     statoLedOld=statoLed;    
-    statoLed=response.toInt();    
+    statoLed=response.toInt();
+    if (statoLed==0) {
+      mode=0;
+      snprintf (valore, 10, "%d", 0);
+      client.publish(allarme_topic, valore);
+    }    
+    else if (statoLed==1) {
+      mode=1;
+      snprintf (valore, 10, "%d", 0);
+      client.publish(allarme_topic, valore);
+    }
   }
   else if (topicS=="IoT/Angelini/sogliaPir") {
     sogliaPir=response.toInt();
     SerialBT.println(response);
     SerialBT.println(sogliaPir);
   }  
-
+  else if (topicS=="IoT/Angelini/allarme") {
+    allarme=response.toInt();
+    if (allarme==1) {
+      mode=2;      
+    }
+    else if (allarme==0) {
+      //mode=0;  
+    }
+    
+  }  
 }
 
 void reconnect() {                            // CONNESSIONE BROKER MQTT
@@ -189,7 +233,7 @@ void reconnect() {                            // CONNESSIONE BROKER MQTT
       client.subscribe(Messaggio_topic,1);
       client.subscribe(statoLed_topic,1);
       client.subscribe(sogliaPir_topic,1);
-      
+      client.subscribe(allarme_topic,1);
       
     } else {
       SerialBT.print("failed, rc=");
@@ -229,17 +273,33 @@ void BTSerialRicevi() {                    // GESTIONE CONTROLLO BLUETOOTH
         }             
       
       else if (dataBT.startsWith("accendi")) {                           
+        mode=1;
         statoLed=1;
         SerialBT.print("Led acceso! ");    
-        SerialBT.println(statoLed);        
+        SerialBT.println(statoLed);   
+        snprintf (valore, 10, "%d", 0);
+        client.publish(allarme_topic, valore);     
       } 
 
       else if (dataBT.startsWith("spegni")) {                           
+        mode=0;
         statoLed=0;
         SerialBT.print("Led spento! ");    
-        SerialBT.println(statoLed);        
+        SerialBT.println(statoLed);   
+        snprintf (valore, 10, "%d", 0);
+        client.publish(allarme_topic, valore);          
       } 
-      
+
+      else if (dataBT.startsWith("alarm")) {                           
+        mode=2;
+        //statoLed=0;
+        SerialBT.println("Allarme attivato!");   
+        snprintf (valore, 10, "%d", 1);
+        client.publish(allarme_topic, valore);      
+        
+      } 
+
+
       else if (dataBT.startsWith("sogPir")) {                    
         String sogliaPirS=dataBT.substring(6);
         sogliaPir=sogliaPirS.toInt();     
@@ -251,8 +311,9 @@ void BTSerialRicevi() {                    // GESTIONE CONTROLLO BLUETOOTH
         SerialBT.println("Comandi:"); 
         SerialBT.println("");
         SerialBT.println("reset          -> Resetta Esp32");    
-        SerialBT.println("accendi        -> Accende il led!");        
-        SerialBT.println("spegni         -> Spegne il led");          
+        SerialBT.println("accendi        -> Accende il led");        
+        SerialBT.println("spegni         -> Spegne il led");   
+        SerialBT.println("alarm          -> Attiva il sensore");          
         SerialBT.println("sogPir(50-4000)-> Soglia sensore PIR");  
         SerialBT.println("info           -> Mostra valori attuali");              
         SerialBT.println("help           -> Questo comando.");
@@ -261,6 +322,7 @@ void BTSerialRicevi() {                    // GESTIONE CONTROLLO BLUETOOTH
       }
 
       else if (dataBT.startsWith("info")) {                       // HELP -> Comando                
+        sendBTWifi();
         printValues();
       }
 
