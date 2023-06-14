@@ -21,8 +21,8 @@
 //////////////////////////////////
 //           WIFI               //
 //////////////////////////////////
-const char* ssid = "";
-const char* password = "";
+const char* ssid = "blekgek-2";
+const char* password = "radicofani27";
 const char* mqtt_server = "93.40.0.250";
 
 //////////////////////////////////
