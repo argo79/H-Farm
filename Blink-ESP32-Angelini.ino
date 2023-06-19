@@ -28,10 +28,11 @@ const char* mqtt_server = "93.40.0.250";
 //////////////////////////////////
 //         PARAMETRI            //
 //////////////////////////////////
-// Configurazione Mosquitto
 
+// Configurazione BT
 #define nomeClient        "IoTAngelini2"
 
+// Configurazione Mosquitto
 #define Messaggio_topic   "IoT/Angelini/messaggio"
 #define statoLed_topic    "IoT/Angelini/statoLed"
 #define sogliaPir_topic   "IoT/Angelini/sogliaPir"
