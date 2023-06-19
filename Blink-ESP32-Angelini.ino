@@ -346,7 +346,7 @@ void printValues() {                        // LEGGE TUTTI I VALORI DEI SENSORI
   SerialBT.print("Stato led: ");
   SerialBT.println(statoLed);
   SerialBT.print("Sensore PIR: ");
-  SerialBT.println(sensorePir);
+  SerialBT.println(statoPir);
   SerialBT.println("");    
 
 }
