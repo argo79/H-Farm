@@ -21,9 +21,9 @@
 //////////////////////////////////
 //           WIFI               //
 //////////////////////////////////
-const char* ssid = "***********";
-const char* password = "*******";
-const char* mqtt_server = "93.40.0.250";
+const char* ssid = "nome rete";
+const char* password = "password";
+const char* mqtt_server = "93.40.0.250";    // indirizzo del server MQTT broker
 
 //////////////////////////////////
 //         PARAMETRI            //
@@ -33,7 +33,9 @@ const char* mqtt_server = "93.40.0.250";
 #define nomeClient        "IoTAngelini2"
 
 // Configurazione Mosquitto
-#define statoLed_topic    "IoT/Cucina/statoLed"
+
+#define Messaggio_topic   "IoT/Angelini/messaggio"
+#define statoLed_topic    "IoT/Angelini/statoLed"
 #define sogliaPir_topic   "IoT/Angelini/sogliaPir"
 #define allarme_topic     "IoT/Angelini/allarme"
 
