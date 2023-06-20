@@ -23,21 +23,21 @@
 //////////////////////////////////
 const char* ssid = "nome rete";
 const char* password = "password";
-const char* mqtt_server = "93.40.0.250";    // indirizzo del server MQTT broker
+const char* mqtt_server = "*.*.*.*";    // indirizzo del server MQTT broker
 
 //////////////////////////////////
 //         PARAMETRI            //
 //////////////////////////////////
 
 // Configurazione BT
-#define nomeClient        "IoTAngelini2"
+#define nomeClient        "ESP32-IoT"
 
 // Configurazione Mosquitto
 
-#define Messaggio_topic   "Casamia/CameraMat/messaggio"
-#define statoLed_topic    "Casamia/Angelini/statoLed"
-#define sogliaPir_topic   "IoT/Angelini/sogliaPir"
-#define allarme_topic     "IoT/Angelini/allarme"
+#define Messaggio_topic   "Casamia/Camera/messaggio"
+#define statoLed_topic    "Casamia/Camera/statoLed"
+#define sogliaPir_topic   "Casamia/Camera/sogliaPir"
+#define allarme_topic     "Casamia/Camera/allarme"
 
 // Creazione oggetti
 
@@ -84,7 +84,7 @@ void setup() {
     SerialBT.print(".");
   }
 
-ArduinoOTA.setHostname("IoTAngelini2-OTA");
+ArduinoOTA.setHostname("ESP32-IOT-OTA");
 ArduinoOTA
     .onStart([]() {
       String type;
@@ -152,8 +152,7 @@ void loop() {
         SerialBT.println(statoPir);
         delay(sogliaPir);
         digitalWrite(builtInLed, 0);
-
-      }
+      }        
       else statoLed=0;
       break;
     
@@ -166,9 +165,7 @@ void loop() {
     reconnect();
   }  
 
-
   BTSerialRicevi();                     // RICEVO MESSAGGI BLUETOOTH
-
 
   client.loop();
 }
@@ -288,10 +285,8 @@ void BTSerialRicevi() {                    // GESTIONE CONTROLLO BLUETOOTH
         //statoLed=0;
         SerialBT.println("Allarme attivato!");   
         snprintf (valore, 10, "%d", 1);
-        client.publish(allarme_topic, valore);      
-        
+        client.publish(allarme_topic, valore);           
       } 
-
 
       else if (dataBT.startsWith("sogPir")) {                    
         String sogliaPirS=dataBT.substring(6);
