@@ -33,8 +33,7 @@ const char* mqtt_server = "93.40.0.250";
 #define nomeClient        "IoTAngelini2"
 
 // Configurazione Mosquitto
-#define Messaggio_topic   "IoT/Angelini/messaggio"
-#define statoLed_topic    "IoT/Angelini/statoLed"
+#define statoLed_topic    "IoT/Cucina/statoLed"
 #define sogliaPir_topic   "IoT/Angelini/sogliaPir"
 #define allarme_topic     "IoT/Angelini/allarme"
 
@@ -50,7 +49,7 @@ BluetoothSerial SerialBT;
 
 bool statoLed=0;
 bool statoLedOld;
-int sogliaPir=500;
+int sogliaPir=5000;
 // Variabili comunicazione
 String dataPC;
 String dataBT;
@@ -67,7 +66,7 @@ char valore[10];
 // the setup function runs once when you press reset or power the board
 void setup() {
   // initialize digital pin LED_BUILTIN as an output.
-  Serial.begin(115200);
+
 
 // connessione bluetooth
   SerialBT.begin(nomeClient);                   //Bluetooth device name
@@ -192,7 +191,7 @@ void callback(char* topic, byte* payload, unsigned int length) {        // Ricez
   String topicS=topic;
   //SerialBT.println(topicS);  
   
-  if (topicS=="IoT/Angelini/statoLed") {
+  if (topicS==statoLed_topic) {
     //SerialBT.println(response);
     statoLedOld=statoLed;    
     statoLed=response.toInt();
