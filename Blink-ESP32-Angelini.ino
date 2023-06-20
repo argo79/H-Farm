@@ -34,8 +34,8 @@ const char* mqtt_server = "93.40.0.250";    // indirizzo del server MQTT broker
 
 // Configurazione Mosquitto
 
-#define Messaggio_topic   "IoT/Angelini/messaggio"
-#define statoLed_topic    "IoT/Angelini/statoLed"
+#define Messaggio_topic   "Casamia/CameraMat/messaggio"
+#define statoLed_topic    "Casamia/Angelini/statoLed"
 #define sogliaPir_topic   "IoT/Angelini/sogliaPir"
 #define allarme_topic     "IoT/Angelini/allarme"
 
@@ -161,15 +161,6 @@ void loop() {
       //digitalWrite(builtInLed, 0);
       break;
     }
-  /* 
-
-
-  
-  //SerialBT.println(statoPir);
-
-  
-
-  */
 
   if (!client.connected()) {
     reconnect();
@@ -208,12 +199,12 @@ void callback(char* topic, byte* payload, unsigned int length) {        // Ricez
       client.publish(allarme_topic, valore);
     }
   }
-  else if (topicS=="IoT/Angelini/sogliaPir") {
+  else if (topicS==sogliaPir_topic) {
     sogliaPir=response.toInt();
     SerialBT.println(response);
     SerialBT.println(sogliaPir);
   }  
-  else if (topicS=="IoT/Angelini/allarme") {
+  else if (topicS==allarme_topic) {
     allarme=response.toInt();
     if (allarme==1) {
       mode=2;      
