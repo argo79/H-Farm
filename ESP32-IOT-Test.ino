@@ -1,5 +1,5 @@
 /*
-  ESP32-IoT Angelini Test
+  ESP32-IoT Test
   Trasmissione bluetooth del valore del sensore PIR
   Ricezione comando accensione/spegnimento led
   Ricezione comando impostazione soglia PIR
