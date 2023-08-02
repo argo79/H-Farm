@@ -89,9 +89,9 @@
 //////////////////////////////////
 //           WIFI               //
 //////////////////////////////////
-const char* ssid = "blekgek";
-const char* password = "radicofani27";
-const char* mqtt_server = "192.168.0.69";
+const char* ssid = "*********";
+const char* password = "***********";
+const char* mqtt_server = "x.x.x.x";
 
 const char* ntpServer = "pool.ntp.org";
 const long  gmtOffset_sec = 3600;
